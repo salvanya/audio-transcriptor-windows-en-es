@@ -1,0 +1,77 @@
+/* tokens.css */
+:root {
+  /* Backgrounds */
+  --color-bg-base:      #080808;
+  --color-bg-surface-1: #121212;
+  --color-bg-surface-2: #1A1A1A;
+
+  /* Accent */
+  --color-accent:       #5856D6;   /* Primary actions, focus states only */
+  --color-accent-alt:   #007AFF;   /* Secondary accent (optional) */
+
+  /* Semantic */
+  --color-success:      #34C759;
+  --color-error:        #FF3B30;
+  --color-warning:      #FF9500;
+
+  /* Text */
+  --color-text-primary:   rgba(255, 255, 255, 0.92);
+  --color-text-secondary: rgba(255, 255, 255, 0.55);
+  --color-text-tertiary:  rgba(255, 255, 255, 0.30);
+
+  /* Borders (Stroke Definition) */
+  --color-stroke:       rgba(255, 255, 255, 0.08);
+  --color-stroke-hover: rgba(255, 255, 255, 0.14);
+}
+
+:root {
+  --radius-container: 24px;   /* Outer containers, cards */
+  --radius-element:   12px;   /* Modals, panels */
+  --radius-control:   8px;    /* Buttons, inputs, tags */
+}
+
+:root {
+  --shadow-card:
+    0px 2px 4px  rgba(0, 0, 0, 0.20),
+    0px 4px 8px  rgba(0, 0, 0, 0.16),
+    0px 12px 24px rgba(0, 0, 0, 0.12);
+
+  --shadow-inset-glow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+:root {
+  --font-family: 'Inter Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Scale: Major Third (1.250×) */
+  --text-body:    16px;   /* line-height: 1.5 */
+  --text-label:   13px;   /* UI labels, metadata */
+  --text-caption: 11px;   /* Timestamps, hints */
+  --text-heading: 20px;   /* Section headings */
+  --text-display: 48px;   /* line-height: 1.1, letter-spacing: -0.02em */
+
+  /* Weights: never use 700+ */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+}
+
+:root {
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 0;
+}

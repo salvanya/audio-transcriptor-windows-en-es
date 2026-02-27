@@ -1,0 +1,121 @@
+/* animations.css */
+
+/* Click feedback */
+.interactive:active {
+    transform: scale(0.98);
+    transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+/* Aura Orbit Spinner */
+.aura-spinner {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 32px auto;
+}
+
+.aura-spinner svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.spinner-arc-outer {
+    stroke: var(--color-accent);
+    stroke-width: 2;
+    stroke-dasharray: 200 100;
+    animation: rotate-outer 1.2s linear infinite, pulse-color 2s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.spinner-arc-middle {
+    stroke: rgba(88, 86, 214, 0.5);
+    stroke-width: 3;
+    stroke-dasharray: 150 150;
+    animation: rotate-middle 2.0s linear infinite reverse;
+    transform-origin: center;
+}
+
+.spinner-arc-inner {
+    stroke: rgba(88, 86, 214, 0.25);
+    stroke-width: 4;
+    stroke-dasharray: 100 200;
+    animation: rotate-inner 3.4s linear infinite;
+    transform-origin: center;
+}
+
+/* Paused State */
+.aura-spinner.paused .spinner-arc-outer,
+.aura-spinner.paused .spinner-arc-middle,
+.aura-spinner.paused .spinner-arc-inner {
+    animation-play-state: paused;
+    transition: stroke-dasharray 300ms ease, stroke 300ms ease;
+}
+
+.aura-spinner.paused .spinner-arc-outer {
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+/* Keyframes */
+@keyframes rotate-outer {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate-middle {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate-inner {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse-color {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Fade in for dynamic elements */
+.fade-in {
+    animation: fadeIn var(--duration-base) var(--ease-standard) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

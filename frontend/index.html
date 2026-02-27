@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraTranscribe</title>
+    <link rel="stylesheet" href="/styles/tokens.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/animations.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Onboarding View -->
+        <div id="onboarding-view" class="view hidden-view">
+            <div class="card" style="margin: auto; max-width: 500px; text-align: center;">
+                <h2 style="margin-bottom: 24px;">◈ AuraTranscribe</h2>
+                <p>To get started, we need to download the AI model.<br>This only happens once.</p>
+                <div
+                    style="text-align: left; margin: 24px 0; font-size: var(--text-label); color: var(--color-text-secondary);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Model:</span> <span>Whisper Small</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Size:</span> <span>465 MB</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Accuracy:</span> <span>Very high for Spanish and English</span>
+                    </div>
+                </div>
+
+                <div id="onboarding-progress" class="hidden">
+                    <div class="progress-container">
+                        <div class="progress-header">
+                            <span id="dl-percent">0%</span>
+                            <span id="dl-speed">0 MB/s</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="dl-bar" class="progress-fill"></div>
+                        </div>
+                    </div>
+                    <p class="caption" id="dl-eta">Estimated time remaining: calculating...</p>
+                </div>
+
+                <div id="onboarding-action" style="margin-top: 32px;">
+                    <button id="btn-download" class="primary interactive">Download Model</button>
+                    <!-- <button id="btn-cancel-dl" class="danger interactive hidden">Cancel installation</button> -->
+                </div>
+
+                <p id="onboarding-error" class="caption hidden" style="color: var(--color-error); margin-top: 16px;">
+                </p>
+            </div>
+        </div>
+
+        <!-- Main View -->
+        <div id="main-view" class="view hidden-view">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                <h2 style="margin: 0;">AuraTranscribe</h2>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <span class="label">Language:</span>
+                    <select id="language-select">
+                        <option value="es">Spanish</option>
+                        <option value="en">English</option>
+                        <option value="auto">Auto-detect</option>
+                    </select>
+                </div>
+            </header>
+
+            <div id="upload-panel" class="card fade-in">
+                <h3>Transcribe Files</h3>
+                <p>Drag and drop local audio or video files. Processing happens entirely on your machine.</p>
+                <div id="drop-zone" class="drop-zone interactive">
+                    <div class="drop-zone-icon">📥</div>
+                    <span>Drop files here or click to browse</span>
+                    <input type="file" id="file-input" multiple accept="audio/*,video/*" style="display: none;">
+                </div>
+                <div id="ram-warning" class="hidden"
+                    style="margin-top: 16px; padding: 12px; border-radius: 8px; background: rgba(255,149,0,0.1); border: 1px solid rgba(255,149,0,0.3);">
+                    <p class="caption" style="margin: 0; color: var(--color-warning);">⚠️ <span
+                            id="ram-warning-text"></span></p>
+                </div>
+            </div>
+
+            <!-- Processing Overlay Panel -->
+            <div id="processing-panel" class="card fade-in hidden" style="text-align: center; margin-top: 24px;">
+                <div class="aura-spinner" id="spinner">
+                    <svg viewBox="0 0 120 120">
+                        <circle class="spinner-arc-outer" cx="60" cy="60" r="50"></circle>
+                        <circle class="spinner-arc-middle" cx="60" cy="60" r="40"></circle>
+                        <circle class="spinner-arc-inner" cx="60" cy="60" r="30"></circle>
+                    </svg>
+                </div>
+
+                <h3 id="current-file-label">Initializing...</h3>
+
+                <div class="progress-container" style="max-width: 400px; margin: 0 auto 24px auto;">
+                    <div class="progress-header">
+                        <span id="audio-progress-text">Audio</span>
+                        <span id="audio-eta"></span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="audio-progress-bar" class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="progress-container" style="max-width: 400px; margin: 0 auto 32px auto;">
+                    <div class="progress-header">
+                        <span class="caption">Batch progress</span>
+                        <span class="caption" id="batch-progress-text"></span>
+                    </div>
+                    <div class="progress-track" style="height: 4px;">
+                        <div id="batch-progress-bar" class="progress-fill muted"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 16px;">
+                    <button id="btn-pause-resume" class="interactive">⏸ Pause</button>
+                    <button id="btn-cancel-job" class="danger interactive">✕ Cancel</button>
+                </div>
+            </div>
+
+            <!-- Export Panel -->
+            <div id="export-panel" class="card fade-in hidden" style="margin-top: 24px;">
+                <h3 style="color: var(--color-success);">✓ <span id="export-completed-count"></span> transcriptions
+                    completed</h3>
+                <div style="display: flex; gap: 32px; margin-top: 24px;">
+                    <label class="interactive"
+                        style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                        <input type="radio" name="export-mode" value="separate" checked style="margin-top: 4px;">
+                        <div>
+                            <div style="font-weight: var(--weight-medium);">Save separately</div>
+                            <div class="caption" id="export-separate-desc" style="margin-top: 4px;"></div>
+                        </div>
+                    </label>
+                    <label class="interactive"
+                        style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                        <input type="radio" name="export-mode" value="merged" style="margin-top: 4px;">
+                        <div>
+                            <div style="font-weight: var(--weight-medium);">Merge into one file</div>
+                            <div class="caption" style="margin-top: 4px;">[auratranscribe_batch_date.txt]</div>
+                        </div>
+                    </label>
+                </div>
+                <div style="margin-top: 32px; text-align: right;">
+                    <p id="export-success-msg" class="caption hidden"
+                        style="color: var(--color-success); display: inline-block; margin-right: 16px;"></p>
+                    <button id="btn-export" class="primary interactive">Export</button>
+                    <button id="btn-new-batch" class="interactive" style="margin-left: 12px;">Transcribe More</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/scripts/ui-effects.js"></script>
+    <script src="/scripts/ws-client.js"></script>
+    <script src="/scripts/job-queue.js"></script>
+    <script src="/scripts/app.js"></script>
+</body>
+
+</html>
