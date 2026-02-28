@@ -52,7 +52,7 @@ if __name__ == "__main__":
     time.sleep(1)
 
     # Create pywebview window
-    window = webview.create_window(
+    core.globals.webview_window = webview.create_window(
         title="AuraTranscribe",
         url=f"http://127.0.0.1:{FASTAPI_PORT}",
         width=900,

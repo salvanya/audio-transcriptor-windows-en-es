@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let completedJobIds = [];
     let isPaused = false;
     let completedFilenames = [];
+    let expectedBatchTotal = 0;
 
     // -- Drag & Drop --
     dropZone.addEventListener("click", () => fileInput.click());
@@ -67,16 +68,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // Prepare UI for processing
         completedJobIds = [];
         completedFilenames = [];
+        expectedBatchTotal = files.length;
         exportSuccessMsg.classList.add("hidden");
 
         const formData = new FormData();
         Array.from(files).forEach(file => {
             formData.append("files", file);
         });
-
-        // Let's pass language as query param or part of url? The API doesn't accept language right now.
-        // Wait, TRD says language is part of the request, but our backend might not implement it yet.
-        // We will just upload.
 
         try {
             uploadPanel.classList.add("hidden");
@@ -89,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
             audioProgressText.innerText = "0%";
             audioEta.innerText = "Calculating...";
             batchProgressBar.style.width = "0%";
-            batchProgressText.innerText = "0 / 0";
+            batchProgressText.innerText = `0 / ${expectedBatchTotal} files`;
             spinner.classList.remove("paused");
             isPaused = false;
             updatePauseResumeButton();
@@ -100,10 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!res.ok) throw new Error("Upload failed");
-
-            const result = await res.json();
-            // Server responds with { job_ids: [...] }
-            // The rest is handled by WS.
         } catch (e) {
             console.error(e);
             alert("Failed to upload files.");
@@ -127,9 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updatePauseResumeButton();
             spinner.classList.add("paused");
         } else if (data.status === "cancelled" || data.status === "error") {
-            // Revert back or show error
             if (data.status === "error") alert(`Error processing file: ${data.error_message}`);
-            // If it's the only job or last job, return to upload
             uploadPanel.classList.remove("hidden");
             processingPanel.classList.add("hidden");
         }
@@ -138,15 +130,14 @@ document.addEventListener("DOMContentLoaded", () => {
     window.wsClient.on("progress", (data) => {
         currentJobId = data.job_id;
         const pAudio = (data.audio_progress * 100).toFixed(1);
-        const pBatch = ((data.batch_current - 1) / data.batch_total) * 100; // approximation
 
         audioProgressBar.style.width = `${pAudio}%`;
         audioProgressText.innerText = `${pAudio}%`;
 
-        // Format ETA
         const etaObj = formatTime(data.estimated_remaining);
         audioEta.innerText = `[${etaObj} remaining]`;
 
+        const pBatch = ((data.batch_current - 1) / data.batch_total) * 100;
         batchProgressBar.style.width = `${pBatch}%`;
         batchProgressText.innerText = `${data.batch_current} / ${data.batch_total} files`;
 
@@ -157,13 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
         completedJobIds.push(data.job_id);
         completedFilenames.push(data.filename);
 
-        // If batch completed (in this simplified logic, we assume we finish when a certain condition is met)
-        // Actually, we need to know if it's the last file. The backend sends batch_total in progress, 
-        // but completed event doesn't have it directly. We can approximate or just wait for the queue to dry.
-        // For simplicity, let's just show export panel and let the user export what's done. 
-        // In a real flow, JobManager could broadcast "batch_completed".
-
-        showExportPanel();
+        if (completedJobIds.length >= expectedBatchTotal) {
+            showExportPanel();
+        } else {
+            const pBatch = (completedJobIds.length / expectedBatchTotal) * 100;
+            batchProgressBar.style.width = `${pBatch}%`;
+            batchProgressText.innerText = `${completedJobIds.length} / ${expectedBatchTotal} files completed`;
+        }
     });
 
     // -- UI Controllers --
@@ -204,26 +195,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnExport.addEventListener("click", async () => {
         const modeInput = document.querySelector('input[name="export-mode"]:checked').value;
-        const reqBody = {
-            job_ids: completedJobIds,
-            mode: modeInput
-        };
+        const totalToExport = completedJobIds.length;
+        let successCount = 0;
 
         try {
-            const res = await fetch("/api/export/batch", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(reqBody)
-            });
+            if (modeInput === "separate") {
+                for (let i = 0; i < totalToExport; i++) {
+                    const jobId = completedJobIds[i];
+                    const filename = completedFilenames[i].replace(/\.[^/.]+$/, "") + ".txt";
 
-            if (!res.ok) throw new Error("Export failed");
+                    const pickerRes = await fetch(`/api/ui/save_dialog?filename=${encodeURIComponent(filename)}`);
+                    const pickerData = await pickerRes.json();
 
-            exportSuccessMsg.innerText = `Saved successfully to Documents folder.`;
-            exportSuccessMsg.classList.remove("hidden");
+                    if (pickerData.path) {
+                        const exportRes = await fetch(`/api/export/single?job_id=${jobId}&target_path=${encodeURIComponent(pickerData.path)}`, {
+                            method: "POST"
+                        });
+                        if (exportRes.ok) successCount++;
+                    }
+                    // Delay between dialogs
+                    await new Promise(r => setTimeout(r, 400));
+                }
+            } else {
+                const dateStr = new Date().toISOString().split('T')[0];
+                const defaultName = `auratranscribe_batch_${dateStr}.txt`;
 
-            setTimeout(() => {
-                exportSuccessMsg.classList.add("hidden");
-            }, 3000);
+                const pickerRes = await fetch(`/api/ui/save_dialog?filename=${encodeURIComponent(defaultName)}`);
+                const pickerData = await pickerRes.json();
+
+                if (pickerData.path) {
+                    const res = await fetch("/api/export/batch", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            job_ids: completedJobIds,
+                            mode: "merged",
+                            target_path: pickerData.path
+                        })
+                    });
+                    if (res.ok) successCount = 1;
+                }
+            }
+
+            if (successCount > 0) {
+                exportSuccessMsg.innerText = modeInput === "separate"
+                    ? `Successfully exported ${successCount} files.`
+                    : `Batch exported successfully.`;
+                exportSuccessMsg.classList.remove("hidden");
+                setTimeout(() => exportSuccessMsg.classList.add("hidden"), 5000);
+            }
 
         } catch (e) {
             console.error(e);
@@ -231,7 +251,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Utilities
     function formatTime(secs) {
         if (isNaN(secs) || secs < 0) return "0:00";
         const m = Math.floor(secs / 60);

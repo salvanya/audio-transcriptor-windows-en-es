@@ -13,6 +13,24 @@ router = APIRouter(prefix="/api", tags=["transcription"])
 class JobPathsRequest(BaseModel):
     paths: List[str]
 
+@router.get("/ui/save_dialog")
+async def save_dialog(filename: str):
+    """Triggers a native 'Save As' dialog via pywebview."""
+    if not core.globals.webview_window:
+        return {"path": None, "error": "UI window not available"}
+        
+    result = core.globals.webview_window.create_file_dialog(
+        webview.SAVE_DIALOG,
+        directory=str(Path(platformdirs.user_documents_dir())),
+        save_filename=filename
+    )
+    
+    # result is a string path or None
+    return {"path": result}
+
+import platformdirs
+import webview
+
 @router.post("/transcription/upload")
 async def upload_files(files: List[UploadFile] = File(...)):
     """Receives files via standard multipart format and queues them."""
@@ -104,41 +122,37 @@ async def get_text(id: str):
 class ExportRequest(BaseModel):
     job_ids: List[str]
     mode: str # "separate" or "merged"
+    target_path: Optional[str] = None
+
+@router.post("/export/single")
+async def export_single(job_id: str, target_path: str):
+    job = core.globals.job_manager.get_job(job_id)
+    if not job or not job.result_text:
+        raise HTTPException(status_code=404, detail="Job or text not found")
+        
+    p = Path(target_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(job.result_text, encoding="utf-8")
+    return {"status": "exported", "file": target_path}
 
 @router.post("/export/batch")
 async def export_batch(req: ExportRequest):
-    EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    
-    jobs = [core.globals.job_manager.get_job(jid) for jid in req.job_ids if core.globals.job_manager.get_job(jid)]
-    if not jobs:
-        raise HTTPException(status_code=404, detail="No jobs found")
-        
     if req.mode == "separate":
-        for job in jobs:
-            if not job.result_text:
-                continue
-            
-            base_name = Path(job.original_filename).stem
-            out_file = EXPORTS_DIR / f"{base_name}.txt"
-            
-            # Anti-collision
-            counter = 2
-            while out_file.exists():
-                out_file = EXPORTS_DIR / f"{base_name}_{counter}.txt"
-                counter += 1
-                
-            out_file.write_text(job.result_text, encoding="utf-8")
-            
-        return {"status": "exported", "mode": "separate"}
+        # This is now handled by the UI calling export_single in a loop for better control
+        return {"status": "use_single_export_flow"}
         
     elif req.mode == "merged":
+        if not req.target_path:
+            raise HTTPException(status_code=400, detail="Target path required for merged export")
+            
+        jobs = [core.globals.job_manager.get_job(jid) for jid in req.job_ids if core.globals.job_manager.get_job(jid)]
+        if not jobs:
+            raise HTTPException(status_code=404, detail="No jobs found")
+            
         import datetime
         date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-        out_file = EXPORTS_DIR / f"auratranscribe_batch_{date_str}.txt"
-        counter = 2
-        while out_file.exists():
-            out_file = EXPORTS_DIR / f"auratranscribe_batch_{date_str}_{counter}.txt"
-            counter += 1
+        out_file = Path(req.target_path)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
             
         lines = []
         for job in jobs:
