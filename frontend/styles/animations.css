@@ -25,7 +25,7 @@
 }
 
 .spinner-arc-outer {
-    stroke: var(--color-accent);
+    stroke: rgba(255, 255, 255, 0.9);
     stroke-width: 2;
     stroke-dasharray: 200 100;
     animation: rotate-outer 1.2s linear infinite, pulse-color 2s ease-in-out infinite;
@@ -33,7 +33,7 @@
 }
 
 .spinner-arc-middle {
-    stroke: rgba(88, 86, 214, 0.5);
+    stroke: rgba(255, 255, 255, 0.5);
     stroke-width: 3;
     stroke-dasharray: 150 150;
     animation: rotate-middle 2.0s linear infinite reverse;
@@ -41,7 +41,7 @@
 }
 
 .spinner-arc-inner {
-    stroke: rgba(88, 86, 214, 0.25);
+    stroke: rgba(255, 255, 255, 0.25);
     stroke-width: 4;
     stroke-dasharray: 100 200;
     animation: rotate-inner 3.4s linear infinite;
@@ -117,5 +117,15 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Radio Indicator Ping */
+@keyframes dot-ping {
+
+    75%,
+    100% {
+        transform: scale(2);
+        opacity: 0;
     }
 }

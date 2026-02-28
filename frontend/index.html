@@ -18,7 +18,7 @@
     <div id="header-shadow" class="header-shadow"></div>
     <header class="app-header">
         <div class="header-content">
-            <img src="/assets/logo.png" alt="AuraTranscribe" class="logo-img">
+            <img src="/assets/logo.png" alt="AuraTranscribe" class="logo-img" id="app-logo">
             <div style="display: flex; align-items: center; gap: 24px;">
                 <!-- UI Language Toggle -->
                 <div class="lang-toggle-container">
@@ -29,11 +29,31 @@
                 <div
                     style="display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--color-stroke); padding-left: 24px; min-width: 320px; justify-content: flex-end;">
                     <span class="label" data-i18n="audio_lang_label" style="white-space: nowrap;">Audio Language:</span>
-                    <select id="language-select" style="min-width: 140px;">
-                        <option value="es" data-i18n="lang_es">Spanish</option>
-                        <option value="en" data-i18n="lang_en">English</option>
-                        <option value="auto" data-i18n="lang_auto">⚡ Auto-detect</option>
-                    </select>
+                    <div class="dropdown" id="audio-lang-dropdown">
+                        <button class="dropdown-trigger outline interactive" id="audio-lang-trigger"
+                            aria-haspopup="true" aria-expanded="false">
+                            <span id="selected-lang-text" data-i18n="lang_es">Spanish</span>
+                            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="dropdown-content hidden" id="audio-lang-content">
+                            <div class="dropdown-item radio-item selected" data-value="es">
+                                <span class="radio-indicator"></span>
+                                <span data-i18n="lang_es">Spanish</span>
+                            </div>
+                            <div class="dropdown-item radio-item" data-value="en">
+                                <span class="radio-indicator"></span>
+                                <span data-i18n="lang_en">English</span>
+                            </div>
+                            <div class="dropdown-item radio-item" data-value="auto">
+                                <span class="radio-indicator"></span>
+                                <span data-i18n="lang_auto">⚡ Auto-detect</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="language-select" value="es">
+                    </div>
                 </div>
             </div>
         </div>
@@ -42,20 +62,12 @@
     <div id="app">
         <div id="onboarding-view" class="view hidden-view">
             <div class="card" style="margin: auto; max-width: 500px; text-align: center;">
-                <img src="/assets/logo.png" alt="AuraTranscribe" class="logo-img"
-                    style="margin: 0 auto 24px auto; height: 120px;">
                 <p data-i18n="onboarding_desc">To get started, we need to download the AI model.<br>This only happens
                     once.</p>
                 <div
                     style="text-align: left; margin: 24px 0; font-size: var(--text-label); color: var(--color-text-secondary);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Model:</span> <span>Whisper Small</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Size:</span> <span>465 MB</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Accuracy:</span> <span>Very high for Spanish and English</span>
+                        <span data-i18n="model_size_label">Size:</span> <span>465 MB</span>
                     </div>
                 </div>
 
@@ -88,7 +100,9 @@
                 <h3 data-i18n="upload_title">Transcribe Files</h3>
                 <p class="caption" data-i18n="upload_formats">MP3, WAV, M4A, OGG, FLAC, MP4, MKV, MOV, AVI, WEBM</p>
                 <div id="drop-zone" class="drop-zone interactive">
-                    <div class="drop-zone-icon">📥</div>
+                    <div class="drop-zone-icon">
+                        <img src="/assets/icons/upload.svg" alt="Upload" class="icon-upload">
+                    </div>
                     <span data-i18n="upload_drop_zone">Drop files here or click to browse</span>
                     <input type="file" id="file-input" multiple accept="audio/*,video/*" style="display: none;">
                 </div>
@@ -141,26 +155,36 @@
             <div id="export-panel" class="card fade-in hidden" style="margin-top: 24px;">
                 <h3 style="color: var(--color-success);">✓ <span id="export-completed-count"></span> <span
                         data-i18n="export_count_suffix">transcriptions completed</span></h3>
-                <div style="display: flex; gap: 32px; margin-top: 24px;">
-                    <label class="interactive"
-                        style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-                        <input type="radio" name="export-mode" value="separate" checked style="margin-top: 4px;">
-                        <div>
-                            <div style="font-weight: var(--weight-medium);" data-i18n="export_mode_separate">Save
-                                separately</div>
-                            <div class="caption" id="export-separate-desc" style="margin-top: 4px;"></div>
+                <div class="radio-group" style="margin-top: 24px;">
+                    <!-- Save Separately Card -->
+                    <div class="radio-card active interactive" data-value="separate">
+                        <div class="radio-indicator">
+                            <span class="dot-ping"></span>
+                            <span class="dot-base"></span>
                         </div>
-                    </label>
-                    <label class="interactive"
-                        style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-                        <input type="radio" name="export-mode" value="merged" style="margin-top: 4px;">
-                        <div>
-                            <div style="font-weight: var(--weight-medium);" data-i18n="export_mode_merged">Merge into
-                                one file</div>
-                            <div class="caption" style="margin-top: 4px;">[auratranscribe_batch_date.txt]</div>
+                        <div class="radio-card-header">
+                            <div class="radio-card-icon">
+                                <img src="/assets/icons/multiple-files.svg" alt="Multiple Files" class="icon-card">
+                            </div>
+                            <span class="radio-card-title" data-i18n="export_mode_separate">Save separately</span>
                         </div>
-                    </label>
+                    </div>
+
+                    <!-- Merge into One Card -->
+                    <div class="radio-card interactive" data-value="merged">
+                        <div class="radio-indicator">
+                            <span class="dot-ping"></span>
+                            <span class="dot-base"></span>
+                        </div>
+                        <div class="radio-card-header">
+                            <div class="radio-card-icon">
+                                <img src="/assets/icons/single-file.svg" alt="Single File" class="icon-card">
+                            </div>
+                            <span class="radio-card-title" data-i18n="export_mode_merged">Merge into one file</span>
+                        </div>
+                    </div>
                 </div>
+                <input type="hidden" id="export-mode-input" value="separate">
                 <div style="margin-top: 32px; text-align: right;">
                     <p id="export-success-msg" class="caption hidden"
                         style="color: var(--color-success); display: inline-block; margin-right: 16px;"></p>
@@ -173,7 +197,21 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <div id="footer-shadow" class="footer-shadow"></div>
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <span data-i18n="footer_created_by">Aplicación creada por</span>
+                <a href="https://github.com/salvanya" target="_blank" class="footer-link">Leandro Salvañá</a>
+            </div>
+            <div class="footer-center">
+                <span data-i18n="footer_license">MIT License Copyright (c) 2026 Leandro Salvañá</span>
+            </div>
+            <div class="footer-right">
+                <span data-i18n="footer_model_credit">AI Powered by OpenAI Whisper V3</span>
+            </div>
+        </div>
+    </footer>
     <script src="/scripts/ui-effects.js"></script>
     <script src="/scripts/ws-client.js"></script>
     <script src="/scripts/job-queue.js"></script>

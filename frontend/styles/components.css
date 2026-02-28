@@ -25,7 +25,8 @@ body {
     flex-direction: column;
     position: relative;
     padding-top: 200px;
-    /* Space for header (100px) + shadow (60px) + breathing room */
+    padding-bottom: 120px;
+    /* Space for header/footer shadows */
 }
 
 h1,
@@ -157,14 +158,31 @@ button:hover {
     border-color: var(--color-stroke-hover);
 }
 
+#btn-new-batch {
+    font-size: 16px;
+    line-height: 19px;
+    border-radius: 11px;
+    padding: 16px 36px;
+    box-sizing: border-box;
+}
+
 button.primary {
-    background: var(--color-accent);
+    background: linear-gradient(90deg, #8A2BE2, #FF00FF, #40E0D0);
+    background-size: 200% auto;
     border: none;
     color: white;
+    font-family: var(--font-family);
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 19px;
+    border-radius: 11px;
+    min-width: 132px;
+    padding: 16px 36px;
+    transition: background-position 0.5s ease;
 }
 
 button.primary:hover {
-    background: #6D6BF0;
+    background-position: right center;
 }
 
 button.danger {
@@ -180,6 +198,17 @@ button.danger:hover {
 button:disabled {
     opacity: 0.5;
     pointer-events: none;
+}
+
+button.outline {
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-stroke);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+button.outline:hover {
+    background: var(--color-bg-surface-2);
+    border-color: var(--color-stroke-hover);
 }
 
 /* Progress Bars */
@@ -205,9 +234,11 @@ button:disabled {
 
 .progress-fill {
     height: 100%;
-    background: var(--color-accent);
+    background: linear-gradient(90deg, #8A2BE2, #FF00FF, #40E0D0);
+    background-size: 200% 100%;
     width: 0%;
     transition: width var(--duration-slow) var(--ease-standard);
+    animation: gradient-slide-x 2s linear infinite;
 }
 
 .progress-fill.muted {
@@ -313,6 +344,270 @@ select:focus {
 
 body[lang="es"] #lang-btn-es,
 body[lang="en"] #lang-btn-en {
-    background: var(--color-accent);
+    background: linear-gradient(90deg, #8A2BE2, #FF00FF, #40E0D0);
+    background-size: 200% 100%;
     color: white;
+    animation: gradient-slide-x 4s linear infinite;
+}
+
+/* Footer & Branding */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.footer-content {
+    width: 100%;
+    max-width: 800px;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-caption);
+    color: var(--color-text-tertiary);
+}
+
+.footer-shadow {
+    position: fixed;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to top, #000, transparent);
+    pointer-events: none;
+    z-index: 999;
+}
+
+.footer-link {
+    color: var(--color-text-secondary);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.footer-link:hover {
+    color: var(--color-text-primary);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Dropdown (Vanilla shadcn/ui style) */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-trigger {
+    cursor: pointer;
+    user-select: none;
+}
+
+.dropdown-content {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 180px;
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-stroke);
+    border-radius: var(--radius-element);
+    padding: 4px;
+    z-index: 1100;
+    box-shadow: var(--shadow-card);
+    transform-origin: top right;
+    animation: dropdown-in 150ms var(--ease-standard);
+}
+
+.dropdown-content.hidden {
+    display: none;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    font-size: var(--text-label);
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all var(--duration-fast) var(--ease-standard);
+    position: relative;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+}
+
+.dropdown-item.selected {
+    color: var(--color-text-primary);
+}
+
+.radio-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.dropdown-item.selected .radio-indicator {
+    opacity: 1;
+}
+
+.chevron-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.5;
+    margin-left: 8px;
+    transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.dropdown-trigger[aria-expanded="true"] .chevron-icon {
+    transform: rotate(180deg);
+}
+
+@keyframes dropdown-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Radio Group Cards */
+.radio-group {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    width: 100%;
+}
+
+.radio-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--color-stroke);
+    border-radius: var(--radius-element);
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--duration-fast) var(--ease-standard);
+    overflow: hidden;
+}
+
+.radio-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-stroke-hover);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.radio-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--cursor-x, 50%) var(--cursor-y, 50%),
+            rgba(88, 86, 214, 0.15) 0%,
+            transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.radio-card.active {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.radio-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.radio-card-icon {
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-card {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.icon-upload {
+    width: 48px;
+    height: 48px;
+    display: block;
+    opacity: 0.8;
+}
+
+.radio-card-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.radio-card-title {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-body);
+    color: var(--color-text-primary);
+}
+
+.radio-card-description {
+    font-size: var(--text-caption);
+    color: var(--color-text-tertiary);
+    line-height: 1.4;
+}
+
+/* Glowing Indicator Dot */
+.radio-indicator {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 10px;
+    height: 10px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.radio-card.active .radio-indicator {
+    display: flex;
+}
+
+.dot-base {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-success);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--color-success);
+}
+
+.dot-ping {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-success);
+    border-radius: 50%;
+    opacity: 0.75;
+    animation: dot-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }

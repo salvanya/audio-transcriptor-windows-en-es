@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancelJob = document.getElementById("btn-cancel-job");
 
     const exportCompletedCount = document.getElementById("export-completed-count");
-    const exportSeparateDesc = document.getElementById("export-separate-desc");
     const exportSuccessMsg = document.getElementById("export-success-msg");
     const btnExport = document.getElementById("btn-export");
     const btnNewBatch = document.getElementById("btn-new-batch");
@@ -37,6 +36,18 @@ document.addEventListener("DOMContentLoaded", () => {
     let isPaused = false;
     let completedFilenames = [];
     let expectedBatchTotal = 0;
+
+    // -- Radio Group Selection --
+    const radioCards = document.querySelectorAll(".radio-card");
+    const exportModeInput = document.getElementById("export-mode-input");
+
+    radioCards.forEach(card => {
+        card.addEventListener("click", () => {
+            radioCards.forEach(c => c.classList.remove("active"));
+            card.classList.add("active");
+            exportModeInput.value = card.dataset.value;
+        });
+    });
 
     // -- Drag & Drop --
     dropZone.addEventListener("click", () => fileInput.click());
@@ -192,7 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
         processingPanel.classList.add("hidden");
         exportPanel.classList.remove("hidden");
         exportCompletedCount.innerText = completedJobIds.length;
-        exportSeparateDesc.innerText = completedFilenames.join(" | ");
     }
 
     btnNewBatch.addEventListener("click", () => {
@@ -201,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     btnExport.addEventListener("click", async () => {
-        const modeInput = document.querySelector('input[name="export-mode"]:checked').value;
+        const modeInput = document.getElementById("export-mode-input").value;
         const totalToExport = completedJobIds.length;
         let successCount = 0;
 
@@ -263,7 +273,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const lang = e.detail;
         // Sync audio language selector with UI language if it's one of the primary ones
         if (lang === "es" || lang === "en") {
-            languageSelect.value = lang;
+            if (window.audioLangDropdown) {
+                window.audioLangDropdown.setValue(lang);
+            } else {
+                languageSelect.value = lang;
+            }
         }
     });
 

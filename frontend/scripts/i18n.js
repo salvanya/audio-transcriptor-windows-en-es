@@ -8,7 +8,8 @@ const translations = {
 
         // Onboarding / Download
         onboarding_title: "Bienvenido a AuraTranscribe",
-        onboarding_desc: "Para comenzar, necesitamos descargar el modelo de transcripción (aprox. 150MB).",
+        onboarding_desc: "Para comenzar, necesitamos descargar el modelo IA para la transcripción",
+        model_size_label: "Tamaño",
         btn_start_download: "Descargar Modelo",
         downloading_status: "Descargando modelo...",
         download_ready: "Modelo listo. Iniciando...",
@@ -32,9 +33,9 @@ const translations = {
         export_count_prefix: "Se han procesado",
         export_count_suffix: "archivos con éxito.",
         export_mode_label: "Modo de exportación:",
-        export_mode_separate: "Archivos individuales (.txt)",
+        export_mode_separate: "Archivos individuales",
         export_mode_merged: "Un solo archivo combinado",
-        btn_export: "Exportar",
+        btn_export: "Descargar",
         btn_new_batch: "Nueva Transcripción",
         export_success_single: "Exportado con éxito.",
         export_success_batch: "Batch exportado con éxito.",
@@ -43,12 +44,17 @@ const translations = {
         // Model Selection Label
         audio_lang_label: "Idioma del Audio:",
         lang_auto: "⚡ Auto-detectar",
-        lang_es: "Español",
-        lang_en: "Inglés",
+        lang_es: "🇪🇸 Español",
+        lang_en: "🇬🇧 Inglés",
         lang_fr: "Francés",
         lang_de: "Alemán",
         lang_it: "Italiano",
-        lang_pt: "Portugués"
+        lang_pt: "Portugués",
+
+        // Footer
+        footer_created_by: "Aplicación creada por",
+        footer_license: "MIT License Copyright (c) 2026 Leandro Salvañá",
+        footer_model_credit: "AI Powered by OpenAI Whisper V3"
     },
     en: {
         app_title: "AuraTranscribe",
@@ -57,7 +63,8 @@ const translations = {
 
         // Onboarding / Download
         onboarding_title: "Welcome to AuraTranscribe",
-        onboarding_desc: "To start, we need to download the transcription model (approx. 150MB).",
+        onboarding_desc: "To get started, we need to download the AI model for transcription",
+        model_size_label: "Size",
         btn_start_download: "Download Model",
         downloading_status: "Downloading model...",
         download_ready: "Model ready. Starting...",
@@ -81,9 +88,9 @@ const translations = {
         export_count_prefix: "Successfully processed",
         export_count_suffix: "files.",
         export_mode_label: "Export mode:",
-        export_mode_separate: "Individual files (.txt)",
+        export_mode_separate: "Individual files",
         export_mode_merged: "Single combined file",
-        btn_export: "Export",
+        btn_export: "Download",
         btn_new_batch: "New Transcription",
         export_success_single: "Exported successfully.",
         export_success_batch: "Batch exported successfully.",
@@ -92,12 +99,17 @@ const translations = {
         // Model Selection Label
         audio_lang_label: "Audio Language:",
         lang_auto: "⚡ Auto-detect",
-        lang_es: "Spanish",
-        lang_en: "English",
+        lang_es: "🇪🇸 Spanish",
+        lang_en: "🇬🇧 English",
         lang_fr: "French",
         lang_de: "German",
         lang_it: "Italian",
-        lang_pt: "Portuguese"
+        lang_pt: "Portuguese",
+
+        // Footer
+        footer_created_by: "App created by",
+        footer_license: "MIT License Copyright (c) 2026 Leandro Salvañá",
+        footer_model_credit: "AI Powered by OpenAI Whisper V3"
     }
 };
 
