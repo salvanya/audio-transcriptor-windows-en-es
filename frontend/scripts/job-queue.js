@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.wsClient.on("status_change", (data) => {
         if (data.status === "extracting") {
             currentJobId = data.job_id;
-            currentFileLabel.innerText = "Extracting Audio...";
+            currentFileLabel.innerText = window.i18n.t("processing_extracting");
         } else if (data.status === "transcribing") {
             currentJobId = data.job_id;
             isPaused = false;
@@ -135,13 +135,16 @@ document.addEventListener("DOMContentLoaded", () => {
         audioProgressText.innerText = `${pAudio}%`;
 
         const etaObj = formatTime(data.estimated_remaining);
-        audioEta.innerText = `[${etaObj} remaining]`;
+        const etaPrefix = window.i18n.t("processing_eta");
+        audioEta.innerText = `[${etaObj} ${etaPrefix}]`;
 
         const pBatch = ((data.batch_current - 1) / data.batch_total) * 100;
         batchProgressBar.style.width = `${pBatch}%`;
-        batchProgressText.innerText = `${data.batch_current} / ${data.batch_total} files`;
 
-        currentFileLabel.innerText = `Transcribing file ${data.batch_current}...`;
+        const filesLabel = window.i18n.t("export_count_suffix").split(" ")[0]; // Just "files" or "archivos"
+        batchProgressText.innerText = `${data.batch_current} / ${data.batch_total} ${filesLabel}`;
+
+        currentFileLabel.innerText = `${window.i18n.t("processing_transcribing")} ${data.batch_current}...`;
     });
 
     window.wsClient.on("completed", (data) => {
@@ -153,17 +156,18 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             const pBatch = (completedJobIds.length / expectedBatchTotal) * 100;
             batchProgressBar.style.width = `${pBatch}%`;
-            batchProgressText.innerText = `${completedJobIds.length} / ${expectedBatchTotal} files completed`;
+            const filesLabel = window.i18n.t("export_count_suffix").split(" ")[0];
+            batchProgressText.innerText = `${completedJobIds.length} / ${expectedBatchTotal} ${filesLabel} completed`;
         }
     });
 
     // -- UI Controllers --
     function updatePauseResumeButton() {
         if (isPaused) {
-            btnPauseResume.innerText = "▶ Resume";
+            btnPauseResume.innerText = window.i18n.t("btn_resume");
             btnPauseResume.classList.add("primary");
         } else {
-            btnPauseResume.innerText = "⏸ Pause";
+            btnPauseResume.innerText = window.i18n.t("btn_pause");
             btnPauseResume.classList.remove("primary");
         }
     }
@@ -239,8 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (successCount > 0) {
                 exportSuccessMsg.innerText = modeInput === "separate"
-                    ? `Successfully exported ${successCount} files.`
-                    : `Batch exported successfully.`;
+                    ? window.i18n.t("export_success_count", { count: successCount })
+                    : window.i18n.t("export_success_batch");
                 exportSuccessMsg.classList.remove("hidden");
                 setTimeout(() => exportSuccessMsg.classList.add("hidden"), 5000);
             }
@@ -248,6 +252,15 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) {
             console.error(e);
             alert("Failed to export files.");
+        }
+    });
+
+    // -- Language Sync --
+    window.addEventListener("languageChanged", (e) => {
+        const lang = e.detail;
+        // Sync audio language selector with UI language if it's one of the primary ones
+        if (lang === "es" || lang === "en") {
+            languageSelect.value = lang;
         }
     });
 

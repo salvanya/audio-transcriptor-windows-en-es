@@ -236,3 +236,35 @@ select:focus {
     opacity: 0;
     pointer-events: none;
 }
+
+/* Language Toggle */
+.lang-toggle-container {
+    display: flex;
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-stroke);
+    border-radius: var(--radius-control);
+    padding: 2px;
+}
+
+.lang-btn {
+    border: none;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: var(--weight-bold);
+    background: transparent;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    border-radius: calc(var(--radius-control) - 2px);
+    transition: all var(--duration-fast) var(--ease-standard);
+    min-width: 80px;
+}
+
+.lang-btn:hover {
+    color: var(--color-text-primary);
+}
+
+body[lang="es"] #lang-btn-es,
+body[lang="en"] #lang-btn-en {
+    background: var(--color-accent);
+    color: white;
+}

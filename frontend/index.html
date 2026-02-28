@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/animations.css">
+    <script src="/scripts/i18n.js"></script>
 </head>
 
 <body>
@@ -16,7 +17,8 @@
         <div id="onboarding-view" class="view hidden-view">
             <div class="card" style="margin: auto; max-width: 500px; text-align: center;">
                 <h2 style="margin-bottom: 24px;">◈ AuraTranscribe</h2>
-                <p>To get started, we need to download the AI model.<br>This only happens once.</p>
+                <p data-i18n="onboarding_desc">To get started, we need to download the AI model.<br>This only happens
+                    once.</p>
                 <div
                     style="text-align: left; margin: 24px 0; font-size: var(--text-label); color: var(--color-text-secondary);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
@@ -40,12 +42,12 @@
                             <div id="dl-bar" class="progress-fill"></div>
                         </div>
                     </div>
-                    <p class="caption" id="dl-eta">Estimated time remaining: calculating...</p>
+                    <p class="caption" id="dl-eta"></p>
                 </div>
 
                 <div id="onboarding-action" style="margin-top: 32px;">
-                    <button id="btn-download" class="primary interactive">Download Model</button>
-                    <!-- <button id="btn-cancel-dl" class="danger interactive hidden">Cancel installation</button> -->
+                    <button id="btn-download" class="primary interactive" data-i18n="btn_start_download">Download
+                        Model</button>
                 </div>
 
                 <p id="onboarding-error" class="caption hidden" style="color: var(--color-error); margin-top: 16px;">
@@ -57,22 +59,33 @@
         <div id="main-view" class="view hidden-view">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
                 <h2 style="margin: 0;">AuraTranscribe</h2>
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <span class="label">Language:</span>
-                    <select id="language-select">
-                        <option value="es">Spanish</option>
-                        <option value="en">English</option>
-                        <option value="auto">Auto-detect</option>
-                    </select>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <!-- UI Language Toggle -->
+                    <div class="lang-toggle-container">
+                        <button class="lang-btn" id="lang-btn-es" onclick="i18n.setLanguage('es')">ESPAÑOL</button>
+                        <button class="lang-btn" id="lang-btn-en" onclick="i18n.setLanguage('en')">ENGLISH</button>
+                    </div>
+
+                    <div
+                        style="display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--color-border); padding-left: 24px; min-width: 320px; justify-content: flex-end;">
+                        <span class="label" data-i18n="audio_lang_label" style="white-space: nowrap;">Audio
+                            Language:</span>
+                        <select id="language-select" style="min-width: 140px;">
+                            <option value="es" data-i18n="lang_es">Spanish</option>
+                            <option value="en" data-i18n="lang_en">English</option>
+                            <option value="auto" data-i18n="lang_auto">⚡ Auto-detect</option>
+                        </select>
+                    </div>
                 </div>
             </header>
 
             <div id="upload-panel" class="card fade-in">
-                <h3>Transcribe Files</h3>
-                <p>Drag and drop local audio or video files. Processing happens entirely on your machine.</p>
+                <h3 data-i18n="upload_title">Transcribe Files</h3>
+                <p data-i18n="upload_formats">Drag and drop local audio or video files. Processing happens entirely on
+                    your machine.</p>
                 <div id="drop-zone" class="drop-zone interactive">
                     <div class="drop-zone-icon">📥</div>
-                    <span>Drop files here or click to browse</span>
+                    <span data-i18n="upload_drop_zone">Drop files here or click to browse</span>
                     <input type="file" id="file-input" multiple accept="audio/*,video/*" style="display: none;">
                 </div>
                 <div id="ram-warning" class="hidden"
@@ -106,7 +119,7 @@
 
                 <div class="progress-container" style="max-width: 400px; margin: 0 auto 32px auto;">
                     <div class="progress-header">
-                        <span class="caption">Batch progress</span>
+                        <span class="caption" data-i18n="processing_title">Batch progress</span>
                         <span class="caption" id="batch-progress-text"></span>
                     </div>
                     <div class="progress-track" style="height: 4px;">
@@ -115,21 +128,22 @@
                 </div>
 
                 <div style="display: flex; justify-content: center; gap: 16px;">
-                    <button id="btn-pause-resume" class="interactive">⏸ Pause</button>
-                    <button id="btn-cancel-job" class="danger interactive">✕ Cancel</button>
+                    <button id="btn-pause-resume" class="interactive">Pause</button>
+                    <button id="btn-cancel-job" class="danger interactive" data-i18n="btn_cancel">Cancel</button>
                 </div>
             </div>
 
             <!-- Export Panel -->
             <div id="export-panel" class="card fade-in hidden" style="margin-top: 24px;">
-                <h3 style="color: var(--color-success);">✓ <span id="export-completed-count"></span> transcriptions
-                    completed</h3>
+                <h3 style="color: var(--color-success);">✓ <span id="export-completed-count"></span> <span
+                        data-i18n="export_count_suffix">transcriptions completed</span></h3>
                 <div style="display: flex; gap: 32px; margin-top: 24px;">
                     <label class="interactive"
                         style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                         <input type="radio" name="export-mode" value="separate" checked style="margin-top: 4px;">
                         <div>
-                            <div style="font-weight: var(--weight-medium);">Save separately</div>
+                            <div style="font-weight: var(--weight-medium);" data-i18n="export_mode_separate">Save
+                                separately</div>
                             <div class="caption" id="export-separate-desc" style="margin-top: 4px;"></div>
                         </div>
                     </label>
@@ -137,7 +151,8 @@
                         style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                         <input type="radio" name="export-mode" value="merged" style="margin-top: 4px;">
                         <div>
-                            <div style="font-weight: var(--weight-medium);">Merge into one file</div>
+                            <div style="font-weight: var(--weight-medium);" data-i18n="export_mode_merged">Merge into
+                                one file</div>
                             <div class="caption" style="margin-top: 4px;">[auratranscribe_batch_date.txt]</div>
                         </div>
                     </label>
@@ -145,8 +160,9 @@
                 <div style="margin-top: 32px; text-align: right;">
                     <p id="export-success-msg" class="caption hidden"
                         style="color: var(--color-success); display: inline-block; margin-right: 16px;"></p>
-                    <button id="btn-export" class="primary interactive">Export</button>
-                    <button id="btn-new-batch" class="interactive" style="margin-left: 12px;">Transcribe More</button>
+                    <button id="btn-export" class="primary interactive" data-i18n="btn_export">Export</button>
+                    <button id="btn-new-batch" class="interactive" style="margin-left: 12px;"
+                        data-i18n="btn_new_batch">Transcribe More</button>
                 </div>
             </div>
 

@@ -32,12 +32,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (data.ram_check && !data.ram_check.sufficient) {
             const warningEl = document.getElementById("ram-warning");
             const warningText = document.getElementById("ram-warning-text");
-            warningText.innerText = `Your system has ${data.ram_check.available_gb} GB of RAM available. At least ${data.ram_check.required_gb} GB is recommended. Close other applications for best results.`;
+            warningText.innerText = window.i18n.t("ram_warning_text");
             warningEl.classList.remove("hidden");
         }
     } catch (e) {
         console.error(e);
-        // Fallback or handle error
     }
 
     function showMainView() {
@@ -45,7 +44,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         setTimeout(() => {
             onboardingView.classList.add("hidden");
             mainView.classList.remove("hidden");
-            // Allow display:flex block to render before removing opacity
             setTimeout(() => {
                 mainView.classList.remove("hidden-view");
             }, 50);
@@ -59,6 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- Onboarding Logic ---
     btnDownload.addEventListener("click", async () => {
         btnDownload.disabled = true;
+        btnDownload.innerText = window.i18n.t("downloading_status");
         onboardActionDiv.classList.add("hidden");
         onboardProgressDiv.classList.remove("hidden");
         onboardError.classList.add("hidden");
@@ -68,35 +67,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             dlPercent.innerText = `${Math.round(data.percent)}%`;
             dlSpeed.innerText = `${data.speed_mbps.toFixed(1)} MB/s`;
             dlBar.style.width = `${Math.min(100, Math.max(0, data.percent))}%`;
-            dlEta.innerText = `Estimated time remaining: ${Math.round(data.estimated_remaining_seconds)} seconds`;
+
+            const etaSuffix = window.i18n.t("processing_eta");
+            dlEta.innerText = `${Math.round(data.estimated_remaining_seconds)}s ${etaSuffix}`;
 
             if (data.percent >= 100) {
-                setTimeout(showMainView, 1000); // Wait 1s then fade to main
+                btnDownload.innerText = window.i18n.t("download_ready");
             }
         });
 
         window.wsClient.on("model_download_complete", () => {
             dlPercent.innerText = `100%`;
             dlBar.style.width = `100%`;
-            dlEta.innerText = `Validation complete.`;
-            setTimeout(showMainView, 1000);
+            dlEta.innerText = window.i18n.t("download_ready");
+            btnDownload.innerText = window.i18n.t("download_ready");
+            setTimeout(showMainView, 1500);
         });
 
         // Trigger HTTP download
         try {
             const res = await fetch("/api/model/download", { method: "POST" });
             if (!res.ok) throw new Error("Download failed");
-            // Actual completion is tracked via WS or polling if WS disconnects, 
-            // but the backend `download` endpoint is synchronous, taking time to respond.
-            // Wait, if it's async in the backend, it returns status immediately.
-            // Let's assume the endpoint handles it or we rely entirely on WS.
             const result = await res.json();
             if (result.status === "already_downloaded" || result.status === "completed") {
                 showMainView();
             }
         } catch (e) {
             console.error(e);
-            onboardError.innerText = "Error starting download. See logs.";
+            onboardError.innerText = "Error starting download.";
             onboardError.classList.remove("hidden");
             btnDownload.disabled = false;
             onboardActionDiv.classList.remove("hidden");
