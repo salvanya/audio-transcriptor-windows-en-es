@@ -8,15 +8,42 @@
     <link rel="stylesheet" href="/styles/tokens.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/animations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="/scripts/i18n.js"></script>
+    <script src="/scripts/background.js"></script>
 </head>
 
 <body>
+    <div id="header-shadow" class="header-shadow"></div>
+    <header class="app-header">
+        <div class="header-content">
+            <img src="/assets/logo.png" alt="AuraTranscribe" class="logo-img">
+            <div style="display: flex; align-items: center; gap: 24px;">
+                <!-- UI Language Toggle -->
+                <div class="lang-toggle-container">
+                    <button class="lang-btn" id="lang-btn-es" onclick="i18n.setLanguage('es')">ESPAÑOL</button>
+                    <button class="lang-btn" id="lang-btn-en" onclick="i18n.setLanguage('en')">ENGLISH</button>
+                </div>
+
+                <div
+                    style="display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--color-stroke); padding-left: 24px; min-width: 320px; justify-content: flex-end;">
+                    <span class="label" data-i18n="audio_lang_label" style="white-space: nowrap;">Audio Language:</span>
+                    <select id="language-select" style="min-width: 140px;">
+                        <option value="es" data-i18n="lang_es">Spanish</option>
+                        <option value="en" data-i18n="lang_en">English</option>
+                        <option value="auto" data-i18n="lang_auto">⚡ Auto-detect</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
     <div id="app">
-        <!-- Onboarding View -->
         <div id="onboarding-view" class="view hidden-view">
             <div class="card" style="margin: auto; max-width: 500px; text-align: center;">
-                <h2 style="margin-bottom: 24px;">◈ AuraTranscribe</h2>
+                <img src="/assets/logo.png" alt="AuraTranscribe" class="logo-img"
+                    style="margin: 0 auto 24px auto; height: 120px;">
                 <p data-i18n="onboarding_desc">To get started, we need to download the AI model.<br>This only happens
                     once.</p>
                 <div
@@ -57,28 +84,6 @@
 
         <!-- Main View -->
         <div id="main-view" class="view hidden-view">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
-                <h2 style="margin: 0;">AuraTranscribe</h2>
-                <div style="display: flex; align-items: center; gap: 24px;">
-                    <!-- UI Language Toggle -->
-                    <div class="lang-toggle-container">
-                        <button class="lang-btn" id="lang-btn-es" onclick="i18n.setLanguage('es')">ESPAÑOL</button>
-                        <button class="lang-btn" id="lang-btn-en" onclick="i18n.setLanguage('en')">ENGLISH</button>
-                    </div>
-
-                    <div
-                        style="display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--color-border); padding-left: 24px; min-width: 320px; justify-content: flex-end;">
-                        <span class="label" data-i18n="audio_lang_label" style="white-space: nowrap;">Audio
-                            Language:</span>
-                        <select id="language-select" style="min-width: 140px;">
-                            <option value="es" data-i18n="lang_es">Spanish</option>
-                            <option value="en" data-i18n="lang_en">English</option>
-                            <option value="auto" data-i18n="lang_auto">⚡ Auto-detect</option>
-                        </select>
-                    </div>
-                </div>
-            </header>
-
             <div id="upload-panel" class="card fade-in">
                 <h3 data-i18n="upload_title">Transcribe Files</h3>
                 <p data-i18n="upload_formats">Drag and drop local audio or video files. Processing happens entirely on

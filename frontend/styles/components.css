@@ -8,21 +8,24 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    /* Center horizontally */
     min-height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 #app {
     width: 100%;
     max-width: 800px;
     height: 100vh;
-    padding: 32px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     position: relative;
+    padding-top: 200px;
+    /* Space for header (100px) + shadow (60px) + breathing room */
 }
 
 h1,
@@ -61,29 +64,74 @@ p {
     color: var(--color-text-tertiary);
 }
 
-/* Interactive Elements */
-.interactive {
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
+/* Header & Branding */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 160px;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.header-content {
+    width: 100%;
+    max-width: 800px;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-shadow {
+    position: fixed;
+    top: 160px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, #000, transparent);
+    pointer-events: none;
+    z-index: 999;
+}
+
+.logo-img {
+    height: 100px;
+    width: auto;
+    display: block;
+}
+
+.view {
+    padding: 32px;
+    box-sizing: border-box;
 }
 
 /* Cards & Containers */
 .card {
-    background-color: var(--color-bg-surface-1);
+    background-color: rgba(18, 18, 18, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius-container);
     padding: 32px;
-    border: 1px solid var(--color-stroke);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: var(--shadow-card);
     position: relative;
     overflow: hidden;
 }
 
-/* Hover: radial gradient follows cursor */
-.card {
+/* Hover: subtle glow */
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
     background: radial-gradient(circle at var(--cursor-x, 50%) var(--cursor-y, 50%),
-            rgba(88, 86, 214, 0.07) 0%,
-            transparent 60%), var(--color-bg-surface-1);
+            rgba(88, 86, 214, 0.15) 0%,
+            transparent 60%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* Buttons */
@@ -223,8 +271,7 @@ select:focus {
 
 /* View transitions */
 .view {
-    position: absolute;
-    inset: 32px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     opacity: 1;
@@ -233,6 +280,7 @@ select:focus {
 }
 
 .view.hidden-view {
+    display: none;
     opacity: 0;
     pointer-events: none;
 }
