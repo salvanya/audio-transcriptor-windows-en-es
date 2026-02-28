@@ -98,6 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!res.ok) throw new Error("Upload failed");
+
+            // Reset input so the same file can be selected again
+            fileInput.value = "";
         } catch (e) {
             console.error(e);
             alert("Failed to upload files.");

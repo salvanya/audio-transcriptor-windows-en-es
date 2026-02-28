@@ -14,9 +14,9 @@ const translations = {
         download_ready: "Modelo listo. Iniciando...",
 
         // Upload Panel
-        upload_title: "Transcribe tus audios",
+        upload_title: "Transcribe audio o video",
         upload_drop_zone: "Arrastra tus archivos aquí o haz clic para buscar",
-        upload_formats: "Formatos soportados: MP3, WAV, M4A, OGG",
+        upload_formats: "MP3, WAV, M4A, OGG, FLAC, MP4, MKV, MOV, AVI, WEBM",
 
         // Processing Panel
         processing_title: "Procesando Batch",
@@ -63,9 +63,9 @@ const translations = {
         download_ready: "Model ready. Starting...",
 
         // Upload Panel
-        upload_title: "Transcribe your audio",
+        upload_title: "Transcribe audio or video",
         upload_drop_zone: "Drag your files here or click to browse",
-        upload_formats: "Supported formats: MP3, WAV, M4A, OGG",
+        upload_formats: "MP3, WAV, M4A, OGG, FLAC, MP4, MKV, MOV, AVI, WEBM",
 
         // Processing Panel
         processing_title: "Batch Processing",
