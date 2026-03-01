@@ -1,3 +1,5 @@
+import sys
+import os
 import uvicorn
 import webview
 import threading
@@ -11,6 +13,14 @@ from api.router import api_router
 import core.globals
 from config import FASTAPI_PORT
 
+# -- Path resolution for PyInstaller bundled mode --
+if getattr(sys, 'frozen', False):
+    # Running as a PyInstaller bundle: assets are in sys._MEIPASS
+    FRONTEND_PATH = os.path.join(sys._MEIPASS, 'frontend')
+else:
+    # Running in normal development mode
+    FRONTEND_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend')
+
 # Basic logging setup
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -21,8 +31,8 @@ app = FastAPI(title="AuraTranscribe API")
 
 app.include_router(api_router)
 
-# Mount frontend (must ensure the directory exists)
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+# Mount frontend using the resolved path
+app.mount("/", StaticFiles(directory=FRONTEND_PATH, html=True), name="frontend")
 
 @app.on_event("startup")
 async def startup_event():
