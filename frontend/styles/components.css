@@ -110,6 +110,27 @@ p {
     box-sizing: border-box;
 }
 
+/* Onboarding Screen */
+.onboarding-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.icon-ai {
+    width: 48px;
+    height: 48px;
+    display: block;
+    opacity: 0.9;
+}
+
+.model-size-info {
+    text-align: center;
+    font-weight: var(--weight-medium);
+}
+
 /* Cards & Containers */
 .card {
     background-color: rgba(18, 18, 18, 0.7);

@@ -62,13 +62,14 @@
     <div id="app">
         <div id="onboarding-view" class="view hidden-view">
             <div class="card" style="margin: auto; max-width: 500px; text-align: center;">
-                <p data-i18n="onboarding_desc">To get started, we need to download the AI model.<br>This only happens
-                    once.</p>
-                <div
-                    style="text-align: left; margin: 24px 0; font-size: var(--text-label); color: var(--color-text-secondary);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span data-i18n="model_size_label">Size:</span> <span>465 MB</span>
-                    </div>
+                <div class="onboarding-header">
+                    <img src="/assets/icons/ai-icon.svg" alt="AI" class="icon-ai">
+                    <p data-i18n="onboarding_desc">To get started, we need to download the AI model.<br>This only
+                        happens once.</p>
+                </div>
+                <div class="model-size-info"
+                    style="margin-bottom: 24px; font-size: var(--text-label); color: var(--color-text-secondary);">
+                    <span data-i18n="model_size_label">Size:</span> <span>465 MB</span>
                 </div>
 
                 <div id="onboarding-progress" class="hidden">
