@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const onboardActionDiv = document.getElementById("onboarding-action");
     const btnDownload = document.getElementById("btn-download");
     const onboardError = document.getElementById("onboarding-error");
+    const welcomePanel = document.getElementById("welcome-panel");
+    const uploadPanel = document.getElementById("upload-panel");
+    const btnStartTranscribing = document.getElementById("btn-start-transcribing");
 
     const dlPercent = document.getElementById("dl-percent");
     const dlSpeed = document.getElementById("dl-speed");
@@ -44,6 +47,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         setTimeout(() => {
             onboardingView.classList.add("hidden");
             mainView.classList.remove("hidden");
+            welcomePanel.classList.remove("hidden");
+            uploadPanel.classList.add("hidden");
             setTimeout(() => {
                 mainView.classList.remove("hidden-view");
             }, 50);
@@ -55,6 +60,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // --- Onboarding Logic ---
+    btnStartTranscribing.addEventListener("click", () => {
+        welcomePanel.classList.add("hidden");
+        uploadPanel.classList.remove("hidden");
+    });
+
     btnDownload.addEventListener("click", async () => {
         btnDownload.disabled = true;
         btnDownload.innerText = window.i18n.t("downloading_status");

@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AuraTranscribe</title>
-    <link rel="icon" type="image/x-icon" href="/assets/icon.ico">
-    <link rel="stylesheet" href="/styles/tokens.css">
-    <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/animations.css">
+    <link rel="icon" type="image/x-icon" href="/assets/icon.ico?v=20260307n">
+    <link rel="stylesheet" href="/styles/tokens.css?v=20260307n">
+    <link rel="stylesheet" href="/styles/components.css?v=20260307n">
+    <link rel="stylesheet" href="/styles/animations.css?v=20260307n">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="/scripts/i18n.js"></script>
-    <script src="/scripts/background.js"></script>
+    <script src="/scripts/i18n.js?v=20260307n"></script>
+    <script src="/scripts/background.js?v=20260307n"></script>
 </head>
 
 <body>
@@ -98,6 +98,15 @@
 
         <!-- Main View -->
         <div id="main-view" class="view hidden-view">
+            <div id="welcome-panel" class="card fade-in" style="text-align: center;">
+                <h3 data-i18n="welcome_title">Welcome to AuraTranscribe</h3>
+                <p data-i18n="welcome_desc">
+                    AuraTranscribe is an app to transcribe audio and video files locally on your computer.
+                </p>
+                <button id="btn-start-transcribing" class="primary interactive"
+                    data-i18n="btn_start_transcribing">Start transcribing</button>
+            </div>
+
             <div id="upload-panel" class="card fade-in">
                 <h3 data-i18n="upload_title">Transcribe Files</h3>
                 <p class="caption" data-i18n="upload_formats">MP3, WAV, M4A, OGG, FLAC, MP4, MKV, MOV, AVI, WEBM</p>
@@ -107,6 +116,17 @@
                     </div>
                     <span data-i18n="upload_drop_zone">Drop files here or click to browse</span>
                     <input type="file" id="file-input" multiple accept="audio/*,video/*" style="display: none;">
+                </div>
+                <div id="upload-selection" class="hidden upload-selection">
+                    <p class="caption upload-selection-count" id="upload-file-count">0 files selected</p>
+                    <ul id="upload-file-list" class="upload-file-list"></ul>
+                    <div class="upload-actions">
+                        <button id="btn-clear-files" class="danger interactive" data-i18n="btn_clear_uploaded">Cancel</button>
+                        <button id="btn-add-more-files" class="interactive" data-i18n="btn_keep_uploading">Keep
+                            uploading</button>
+                        <button id="btn-start-now" class="primary interactive" data-i18n="btn_start_transcribing_now">Start
+                            transcribing</button>
+                    </div>
                 </div>
                 <div id="ram-warning" class="hidden"
                     style="margin-top: 16px; padding: 12px; border-radius: 8px; background: rgba(255,149,0,0.1); border: 1px solid rgba(255,149,0,0.3);">
@@ -157,7 +177,22 @@
             <div id="export-panel" class="card fade-in hidden" style="margin-top: 24px;">
                 <h3 style="color: var(--color-success);">✓ <span id="export-completed-count"></span> <span
                         data-i18n="export_count_suffix">transcriptions completed</span></h3>
-                <div class="radio-group" style="margin-top: 24px;">
+                <div class="export-selection-frame">
+                    <p class="caption" data-i18n="export_select_title">Select files to download</p>
+                    <p class="caption export-selection-count" id="export-selected-count"></p>
+                    <ul id="export-file-list" class="export-file-list"></ul>
+                </div>
+                <div id="export-single-view" class="export-single-view hidden">
+                    <h4 id="export-single-filename" class="export-single-filename"></h4>
+                    <textarea id="export-single-text" class="export-single-text" readonly></textarea>
+                    <div class="export-single-actions">
+                        <button id="btn-copy-transcript" class="interactive">
+                            <img src="/assets/icons/copy-alt.svg" alt="Copy" class="copy-icon">
+                            <span data-i18n="btn_copy_text">Copy text</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="export-mode-group" class="radio-group" style="margin-top: 24px;">
                     <!-- Save Separately Card -->
                     <div class="radio-card active interactive" data-value="separate">
                         <div class="radio-indicator">
@@ -187,6 +222,10 @@
                     </div>
                 </div>
                 <input type="hidden" id="export-mode-input" value="separate">
+                <div class="export-folder-row">
+                    <button id="btn-choose-folder" class="interactive" data-i18n="btn_choose_folder">Choose folder</button>
+                    <span id="export-folder-path" class="caption" data-i18n="export_folder_default">Default folder (Documents/AuraTranscribe)</span>
+                </div>
                 <div style="margin-top: 32px; text-align: right;">
                     <p id="export-success-msg" class="caption hidden"
                         style="color: var(--color-success); display: inline-block; margin-right: 16px;"></p>
@@ -214,10 +253,10 @@
             </div>
         </div>
     </footer>
-    <script src="/scripts/ui-effects.js"></script>
-    <script src="/scripts/ws-client.js"></script>
-    <script src="/scripts/job-queue.js"></script>
-    <script src="/scripts/app.js"></script>
+    <script src="/scripts/ui-effects.js?v=20260307n"></script>
+    <script src="/scripts/ws-client.js?v=20260307n"></script>
+    <script src="/scripts/job-queue.js?v=20260307n"></script>
+    <script src="/scripts/app.js?v=20260307n"></script>
 </body>
 
 </html>

@@ -5,6 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const dropZone = document.getElementById("drop-zone");
     const fileInput = document.getElementById("file-input");
     const languageSelect = document.getElementById("language-select");
+    const uploadSelection = document.getElementById("upload-selection");
+    const uploadFileCount = document.getElementById("upload-file-count");
+    const uploadFileList = document.getElementById("upload-file-list");
+    const btnAddMoreFiles = document.getElementById("btn-add-more-files");
+    const btnStartNow = document.getElementById("btn-start-now");
+    const btnClearFiles = document.getElementById("btn-clear-files");
 
     const uploadPanel = document.getElementById("upload-panel");
     const processingPanel = document.getElementById("processing-panel");
@@ -29,6 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const exportSuccessMsg = document.getElementById("export-success-msg");
     const btnExport = document.getElementById("btn-export");
     const btnNewBatch = document.getElementById("btn-new-batch");
+    const exportModeGroup = document.getElementById("export-mode-group");
+    const exportFileList = document.getElementById("export-file-list");
+    const exportSelectedCount = document.getElementById("export-selected-count");
+    const exportSelectionFrame = document.querySelector(".export-selection-frame");
+    const exportSingleView = document.getElementById("export-single-view");
+    const exportSingleFilename = document.getElementById("export-single-filename");
+    const exportSingleText = document.getElementById("export-single-text");
+    const btnCopyTranscript = document.getElementById("btn-copy-transcript");
+    const btnChooseFolder = document.getElementById("btn-choose-folder");
+    const exportFolderPath = document.getElementById("export-folder-path");
 
     // -- State --
     let currentJobId = null;
@@ -36,6 +52,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let isPaused = false;
     let completedFilenames = [];
     let expectedBatchTotal = 0;
+    let isSingleFileUpload = false;
+    let queuedFiles = [];
+    let renderedFileKeys = new Set();
+    let selectedExportJobIds = new Set();
+    const completedTextsByJobId = new Map();
+    let selectedExportFolder = null;
 
     // -- Radio Group Selection --
     const radioCards = document.querySelectorAll(".radio-card");
@@ -65,13 +87,167 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         dropZone.classList.remove("dragover");
         if (e.dataTransfer.files.length > 0) {
-            handleFiles(e.dataTransfer.files);
+            addFilesToQueue(e.dataTransfer.files);
         }
     });
 
     fileInput.addEventListener("change", (e) => {
         if (e.target.files.length > 0) {
-            handleFiles(e.target.files);
+            addFilesToQueue(e.target.files);
+        }
+    });
+
+    btnAddMoreFiles.addEventListener("click", () => fileInput.click());
+    btnStartNow.addEventListener("click", () => startQueuedTranscription());
+    btnClearFiles.addEventListener("click", () => {
+        queuedFiles = [];
+        renderedFileKeys.clear();
+        renderQueuedFiles();
+    });
+
+    function fileKey(file) {
+        return `${file.name}::${file.size}::${file.lastModified}`;
+    }
+
+    function addFilesToQueue(files) {
+        const existing = new Set(queuedFiles.map(fileKey));
+        Array.from(files).forEach(file => {
+            const key = fileKey(file);
+            if (!existing.has(key)) {
+                queuedFiles.push(file);
+                existing.add(key);
+            }
+        });
+        fileInput.value = "";
+        renderQueuedFiles();
+    }
+
+    function renderQueuedFiles() {
+        uploadFileList.innerHTML = "";
+        queuedFiles.forEach((file, index) => {
+            const key = fileKey(file);
+            const li = document.createElement("li");
+            li.className = "upload-file-item";
+
+            if (renderedFileKeys.has(key)) {
+                li.innerText = file.name;
+            } else {
+                li.classList.add("typing-line");
+                const baseDelay = index * 120;
+                Array.from(file.name).forEach((char, charIndex) => {
+                    const span = document.createElement("span");
+                    span.className = "type-char";
+                    span.style.animationDelay = `${baseDelay + (charIndex * 24)}ms`;
+                    span.textContent = char;
+                    li.appendChild(span);
+                });
+
+                const cursor = document.createElement("span");
+                cursor.className = "typing-cursor";
+                cursor.style.animationDelay = `${baseDelay + (file.name.length * 24)}ms`;
+                li.appendChild(cursor);
+
+                const removeCursorDelay = baseDelay + (file.name.length * 24) + 350;
+                setTimeout(() => {
+                    if (cursor.parentElement) cursor.remove();
+                }, removeCursorDelay);
+
+                renderedFileKeys.add(key);
+            }
+
+            uploadFileList.appendChild(li);
+        });
+
+        const selectedSuffix = window.i18n.t("upload_files_selected");
+        uploadFileCount.innerText = `${queuedFiles.length} ${selectedSuffix}`;
+        uploadSelection.classList.toggle("hidden", queuedFiles.length === 0);
+    }
+
+    function startQueuedTranscription() {
+        if (queuedFiles.length === 0) return;
+        handleFiles([...queuedFiles]);
+    }
+
+    function renderExportSelection() {
+        exportFileList.innerHTML = "";
+        completedJobIds.forEach((jobId, index) => {
+            const row = document.createElement("li");
+            row.className = "export-file-item";
+
+            const label = document.createElement("label");
+            label.className = "export-file-label";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = selectedExportJobIds.has(jobId);
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    selectedExportJobIds.add(jobId);
+                } else {
+                    selectedExportJobIds.delete(jobId);
+                }
+                updateExportSelectionState();
+            });
+
+            const text = document.createElement("span");
+            text.innerText = completedFilenames[index] || `File ${index + 1}`;
+
+            label.appendChild(checkbox);
+            label.appendChild(text);
+            row.appendChild(label);
+            exportFileList.appendChild(row);
+        });
+        updateExportSelectionState();
+    }
+
+    function updateExportSelectionState() {
+        exportSelectedCount.innerText = window.i18n.t("export_selected_count", { count: selectedExportJobIds.size });
+        btnExport.disabled = selectedExportJobIds.size === 0;
+    }
+
+    async function setSingleTranscriptView(jobId) {
+        exportSingleFilename.innerText = completedFilenames[0] || "";
+        let text = completedTextsByJobId.get(jobId) || "";
+        if (!text) {
+            try {
+                const res = await fetch(`/api/transcription/${jobId}/text`);
+                if (res.ok) {
+                    const data = await res.json();
+                    text = data.text || "";
+                }
+            } catch (_) {
+                text = "";
+            }
+        }
+        exportSingleText.value = text;
+    }
+
+    btnCopyTranscript.addEventListener("click", async () => {
+        const text = exportSingleText.value || "";
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            exportSuccessMsg.innerText = window.i18n.t("copy_success");
+            exportSuccessMsg.classList.remove("hidden");
+            setTimeout(() => exportSuccessMsg.classList.add("hidden"), 2000);
+        } catch (e) {
+            console.error(e);
+            alert("Failed to copy text.");
+        }
+    });
+
+    btnChooseFolder.addEventListener("click", async () => {
+        try {
+            const res = await fetch("/api/export/select_folder");
+            if (!res.ok) throw new Error("Failed to choose folder");
+            const result = await res.json();
+            if (result.status === "selected" && result.folder) {
+                selectedExportFolder = result.folder;
+                exportFolderPath.innerText = result.folder;
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to choose folder.");
         }
     });
 
@@ -80,6 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
         completedJobIds = [];
         completedFilenames = [];
         expectedBatchTotal = files.length;
+        isSingleFileUpload = expectedBatchTotal === 1;
         exportSuccessMsg.classList.add("hidden");
 
         const formData = new FormData();
@@ -110,8 +287,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!res.ok) throw new Error("Upload failed");
 
-            // Reset input so the same file can be selected again
-            fileInput.value = "";
+            queuedFiles = [];
+            renderedFileKeys.clear();
+            renderQueuedFiles();
         } catch (e) {
             console.error(e);
             alert("Failed to upload files.");
@@ -164,6 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.wsClient.on("completed", (data) => {
         completedJobIds.push(data.job_id);
         completedFilenames.push(data.filename);
+        completedTextsByJobId.set(data.job_id, data.text || "");
 
         if (completedJobIds.length >= expectedBatchTotal) {
             showExportPanel();
@@ -199,21 +378,48 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    function showExportPanel() {
+    async function showExportPanel() {
+        const singleExportMode = isSingleFileUpload || expectedBatchTotal === 1 || completedJobIds.length === 1;
         processingPanel.classList.add("hidden");
         exportPanel.classList.remove("hidden");
         exportCompletedCount.innerText = completedJobIds.length;
+        exportFolderPath.innerText = selectedExportFolder || window.i18n.t("export_folder_default");
+        selectedExportJobIds = new Set(completedJobIds);
+        exportSelectionFrame.classList.toggle("hidden", singleExportMode);
+        exportSingleView.classList.toggle("hidden", !singleExportMode);
+        if (singleExportMode && completedJobIds.length > 0) {
+            await setSingleTranscriptView(completedJobIds[0]);
+        } else {
+            renderExportSelection();
+        }
+        if (exportModeGroup) {
+            exportModeGroup.classList.toggle("hidden", singleExportMode);
+        }
+        radioCards.forEach(c => c.classList.toggle("hidden", singleExportMode));
+        exportModeInput.value = "separate";
+        radioCards.forEach(c => c.classList.toggle("active", c.dataset.value === "separate"));
     }
 
     btnNewBatch.addEventListener("click", () => {
         exportPanel.classList.add("hidden");
         uploadPanel.classList.remove("hidden");
+        queuedFiles = [];
+        renderedFileKeys.clear();
+        selectedExportJobIds.clear();
+        completedTextsByJobId.clear();
+        exportSingleText.value = "";
+        selectedExportFolder = null;
+        exportFolderPath.innerText = window.i18n.t("export_folder_default");
+        renderQueuedFiles();
     });
 
     btnExport.addEventListener("click", async () => {
-        const modeInput = document.getElementById("export-mode-input").value;
+        const singleExportMode = isSingleFileUpload || expectedBatchTotal === 1 || completedJobIds.length === 1;
+        const modeInput = singleExportMode ? "separate" : document.getElementById("export-mode-input").value;
+        const selectedIds = completedJobIds.filter(jobId => selectedExportJobIds.has(jobId));
 
         try {
+            if (selectedIds.length === 0) return;
             btnExport.disabled = true;
 
             if (modeInput === "separate") {
@@ -222,8 +428,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        job_ids: completedJobIds,
-                        mode: "separate"
+                        job_ids: selectedIds,
+                        mode: "separate",
+                        folder_path: selectedExportFolder
                     })
                 });
 
@@ -234,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 exportSuccessMsg.classList.remove("hidden");
 
                 // Open the export folder
-                await fetch("/api/export/open_folder");
+                await fetch(`/api/export/open_folder?folder=${encodeURIComponent(result.folder || "")}`);
 
             } else {
                 // Merged export
@@ -242,8 +449,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        job_ids: completedJobIds,
-                        mode: "merged"
+                        job_ids: selectedIds,
+                        mode: "merged",
+                        folder_path: selectedExportFolder
                     })
                 });
 
@@ -254,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 exportSuccessMsg.classList.remove("hidden");
 
                 // Open the export folder
-                await fetch("/api/export/open_folder");
+                await fetch(`/api/export/open_folder?folder=${encodeURIComponent(result.folder || "")}`);
             }
 
             setTimeout(() => exportSuccessMsg.classList.add("hidden"), 5000);
@@ -275,6 +483,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.audioLangDropdown.setValue(lang);
             } else {
                 languageSelect.value = lang;
+            }
+            if (queuedFiles.length > 0) {
+                renderQueuedFiles();
+            }
+            if (!exportPanel.classList.contains("hidden") && completedJobIds.length > 0) {
+                updateExportSelectionState();
             }
         }
     });

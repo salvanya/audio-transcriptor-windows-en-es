@@ -110,6 +110,13 @@ async def get_text(id: str):
 class ExportRequest(BaseModel):
     job_ids: List[str]
     mode: str  # "separate" or "merged"
+    folder_path: Optional[str] = None
+
+
+def _resolve_export_dir(folder_path: Optional[str]) -> Path:
+    target_dir = Path(folder_path) if folder_path else EXPORTS_DIR
+    target_dir.mkdir(parents=True, exist_ok=True)
+    return target_dir
 
 
 @router.post("/export/single")
@@ -119,24 +126,24 @@ async def export_single(job_id: str):
     if not job or not job.result_text:
         raise HTTPException(status_code=404, detail="Job or text not found")
 
-    EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    export_dir = _resolve_export_dir(None)
     filename = Path(job.original_filename).stem + ".txt"
-    target = EXPORTS_DIR / filename
+    target = export_dir / filename
 
     # Avoid overwriting existing files
     counter = 1
     while target.exists():
-        target = EXPORTS_DIR / f"{Path(job.original_filename).stem}_{counter}.txt"
+        target = export_dir / f"{Path(job.original_filename).stem}_{counter}.txt"
         counter += 1
 
     target.write_text(job.result_text, encoding="utf-8")
-    return {"status": "exported", "file": str(target), "filename": target.name}
+    return {"status": "exported", "file": str(target), "filename": target.name, "folder": str(export_dir)}
 
 
 @router.post("/export/batch")
 async def export_batch(req: ExportRequest):
     """Exports jobs either separately or merged into the Documents/AuraTranscribe folder."""
-    EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    export_dir = _resolve_export_dir(req.folder_path)
 
     if req.mode == "separate":
         exported = []
@@ -146,17 +153,17 @@ async def export_batch(req: ExportRequest):
                 continue
 
             filename = Path(job.original_filename).stem + ".txt"
-            target = EXPORTS_DIR / filename
+            target = export_dir / filename
 
             counter = 1
             while target.exists():
-                target = EXPORTS_DIR / f"{Path(job.original_filename).stem}_{counter}.txt"
+                target = export_dir / f"{Path(job.original_filename).stem}_{counter}.txt"
                 counter += 1
 
             target.write_text(job.result_text, encoding="utf-8")
             exported.append(str(target))
 
-        return {"status": "exported", "mode": "separate", "files": exported, "folder": str(EXPORTS_DIR)}
+        return {"status": "exported", "mode": "separate", "files": exported, "folder": str(export_dir)}
 
     elif req.mode == "merged":
         jobs = [core.globals.job_manager.get_job(jid) for jid in req.job_ids
@@ -166,11 +173,11 @@ async def export_batch(req: ExportRequest):
 
         date_str = datetime.datetime.now().strftime("%Y-%m-%d")
         filename = f"auratranscribe_batch_{date_str}.txt"
-        target = EXPORTS_DIR / filename
+        target = export_dir / filename
 
         counter = 1
         while target.exists():
-            target = EXPORTS_DIR / f"auratranscribe_batch_{date_str}_{counter}.txt"
+            target = export_dir / f"auratranscribe_batch_{date_str}_{counter}.txt"
             counter += 1
 
         lines = []
@@ -187,16 +194,37 @@ async def export_batch(req: ExportRequest):
             lines.append("\n\n")
 
         target.write_text("\n".join(lines), encoding="utf-8")
-        return {"status": "exported", "mode": "merged", "file": str(target), "folder": str(EXPORTS_DIR)}
+        return {"status": "exported", "mode": "merged", "file": str(target), "folder": str(export_dir)}
 
     else:
         raise HTTPException(status_code=400, detail="Invalid mode")
 
 
 @router.get("/export/open_folder")
-async def open_export_folder():
+async def open_export_folder(folder: Optional[str] = None):
     """Opens the export folder in Windows Explorer."""
     import subprocess
-    EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    subprocess.Popen(["explorer", str(EXPORTS_DIR)])
-    return {"status": "opened", "folder": str(EXPORTS_DIR)}
+    target = _resolve_export_dir(folder)
+    subprocess.Popen(["explorer", str(target)])
+    return {"status": "opened", "folder": str(target)}
+
+
+@router.get("/export/select_folder")
+async def select_export_folder():
+    """Opens native folder picker and returns selected folder path."""
+    import asyncio
+    import tkinter as tk
+    from tkinter import filedialog
+
+    def _pick_folder() -> str:
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        selected = filedialog.askdirectory(title="Select export folder")
+        root.destroy()
+        return selected or ""
+
+    selected = await asyncio.to_thread(_pick_folder)
+    if not selected:
+        return {"status": "cancelled"}
+    return {"status": "selected", "folder": selected}

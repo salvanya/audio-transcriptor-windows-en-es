@@ -6,6 +6,7 @@ import uvicorn
 import threading
 import logging
 import time
+import hashlib
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from rich.logging import RichHandler
@@ -48,41 +49,49 @@ def kill_process_on_port(port: int):
 
 
 def open_app_window(url):
-    """
-    Open URL in a Chromium app window (no address bar, looks like a native app).
-    Tries Edge first (pre-installed on all Windows 10/11), then Chrome, then default browser.
-    """
-    # Try Edge first — available on all Windows 10/11
-    edge_paths = [
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    ]
-    for edge in edge_paths:
-        if os.path.exists(edge):
-            subprocess.Popen([edge, f"--app={url}", "--new-window"])
-            logger.info("Opened app window with Edge")
-            return
-
-    # Try Chrome
-    chrome_paths = [
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-    ]
-    for chrome in chrome_paths:
-        if os.path.exists(chrome):
-            subprocess.Popen([chrome, f"--app={url}", "--new-window"])
-            logger.info("Opened app window with Chrome")
-            return
-
-    # Fallback: default browser (will have address bar, but works)
+    """Open URL in the default browser tab to avoid app-window cache issues."""
     import webbrowser
     webbrowser.open(url)
-    logger.info("Opened app in default browser (fallback)")
-
+    logger.info("Opened app in default browser tab")
 
 app = FastAPI(title="AuraTranscribe API")
 
 app.include_router(api_router)
+
+
+@app.middleware("http")
+async def disable_frontend_cache(request, call_next):
+    response = await call_next(request)
+    if not request.url.path.startswith("/api"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
+@app.get("/api/debug/runtime_source")
+async def debug_runtime_source():
+    index_path = os.path.join(FRONTEND_PATH, "index.html")
+    index_exists = os.path.exists(index_path)
+    index_sha1 = None
+    contains_welcome = False
+
+    if index_exists:
+        with open(index_path, "rb") as f:
+            raw = f.read()
+            index_sha1 = hashlib.sha1(raw).hexdigest()
+            contains_welcome = b"Welcome to AuraTranscribe" in raw
+
+    return {
+        "cwd": os.getcwd(),
+        "main_py": os.path.abspath(__file__),
+        "frozen": bool(getattr(sys, "frozen", False)),
+        "frontend_path": FRONTEND_PATH,
+        "index_path": index_path,
+        "index_exists": index_exists,
+        "index_sha1": index_sha1,
+        "index_contains_welcome": contains_welcome
+    }
 
 # Mount frontend using the resolved path
 app.mount("/", StaticFiles(directory=FRONTEND_PATH, html=True), name="frontend")
@@ -125,7 +134,7 @@ if __name__ == "__main__":
     # Wait for server to be ready
     time.sleep(1.5)
 
-    # Open the app in a chromium window (no address bar)
+    # Open the app in a normal browser tab
     app_url = f"http://127.0.0.1:{FASTAPI_PORT}"
     open_app_window(app_url)
 
@@ -143,3 +152,4 @@ if __name__ == "__main__":
         _server.should_exit = True
     time.sleep(1)
     os._exit(0)
+

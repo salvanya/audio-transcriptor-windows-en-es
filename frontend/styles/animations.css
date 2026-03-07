@@ -129,3 +129,54 @@
         opacity: 0;
     }
 }
+
+.typing-line .type-char {
+    opacity: 0;
+    display: inline-block;
+    transform: translateY(2px);
+    animation: type-char-in 120ms linear forwards;
+}
+
+.typing-line .typing-cursor {
+    display: inline-block;
+    width: 1px;
+    height: 1em;
+    margin-left: 2px;
+    background: rgba(255, 255, 255, 0.95);
+    vertical-align: -2px;
+    animation: cursor-fade-in 1ms linear forwards, cursor-blink 700ms steps(1) infinite;
+}
+
+@keyframes type-char-in {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cursor-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes cursor-blink {
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0.2;
+    }
+}
